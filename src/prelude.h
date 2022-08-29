@@ -73,7 +73,7 @@ static MemMap path_to_map(const char* path) {
     return map;
 }
 
-#define CAP_BUFFER (1 << 12)
+#define CAP_BUFFER (1 << 13)
 static char BUFFER[CAP_BUFFER];
 static u32  LEN_BUFFER = 0;
 

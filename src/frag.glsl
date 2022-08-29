@@ -40,6 +40,8 @@ void main() {
                    (camera_y * ray_thru_film.y)) -
                   camera_position);
 
+    vec3 light_position = vec3(-10.0f, 10.0f, 20.0f);
+
     float hit_dist = INF;
     {
         Plane plane = Plane(normalize(vec3(0.0f, 1.0f, 0.0)), -1.0f);
@@ -49,8 +51,13 @@ void main() {
                 (plane.d - dot(plane.normal, camera_position)) / denom;
             if ((0 < new_dist) && (new_dist < hit_dist)) {
                 hit_dist = new_dist;
-                vec3  color = vec3(pixel, TIME);
-                float brightness = abs(dot(ray_direction, plane.normal));
+                vec3 color = vec3(pixel, TIME);
+                vec3 plane_position =
+                    camera_position + (ray_direction * hit_dist);
+                vec3 light_direction =
+                    normalize(light_position - plane_position);
+                float brightness =
+                    max(dot(light_direction, plane.normal), 0.0f);
                 FRAG_OUT_COLOR = vec4(color * brightness, 1.0f);
             }
         }
@@ -81,11 +88,14 @@ void main() {
                     if ((0 < new_dist) && (new_dist < hit_dist)) {
                         hit_dist = new_dist;
                         vec3 color = vec3(pixel, TIME);
-                        vec3 sphere_normal = normalize(
-                            camera_position + (ray_direction * hit_dist) -
-                            sphere.center);
+                        vec3 sphere_position =
+                            camera_position + (ray_direction * hit_dist);
+                        vec3 sphere_normal =
+                            normalize(sphere_position - sphere.center);
+                        vec3 light_direction =
+                            normalize(light_position - sphere_position);
                         float brightness =
-                            abs(dot(ray_direction, sphere_normal));
+                            max(dot(light_direction, sphere_normal), 0.0f);
                         FRAG_OUT_COLOR = vec4(color * brightness, 1.0f);
                     }
                 }
