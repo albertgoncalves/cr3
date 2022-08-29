@@ -1,0 +1,13 @@
+*
+!.gitignore
+!*.nix
+!.shellhook
+!.clang-format
+
+!scripts/
+!*.sh
+
+!src/
+!*.h
+!*.c
+!*.glsl
