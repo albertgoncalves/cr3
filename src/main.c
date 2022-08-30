@@ -8,6 +8,11 @@
 #define WINDOW_HEIGHT 768
 #define WINDOW_NAME   __FILE__
 
+#define FRAME_BUFFER_SCALE 8
+
+#define FRAME_BUFFER_WIDTH  (WINDOW_WIDTH / FRAME_BUFFER_SCALE)
+#define FRAME_BUFFER_HEIGHT (WINDOW_HEIGHT / FRAME_BUFFER_SCALE)
+
 #define BACKGROUND_COLOR 0.125f, 0.125f, 0.125f, 1.0f
 
 #define TIME_INTERVAL 4
@@ -92,8 +97,8 @@ i32 main(i32 n, const char** args) {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glClearColor(BACKGROUND_COLOR);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     EXIT_IF_GL_ERROR();
 
     const u32 program = glCreateProgram();
@@ -172,12 +177,46 @@ i32 main(i32 n, const char** args) {
         EXIT_IF_GL_ERROR();
     }
 
+    u32 render_buffer_color;
+    glGenRenderbuffers(1, &render_buffer_color);
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buffer_color);
+    glRenderbufferStorage(GL_RENDERBUFFER,
+                          GL_RGB,
+                          FRAME_BUFFER_WIDTH,
+                          FRAME_BUFFER_HEIGHT);
     EXIT_IF_GL_ERROR();
 
-    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    // u32 render_buffer_depth;
+    // glGenRenderbuffers(1, &render_buffer_depth);
+    // glBindRenderbuffer(GL_RENDERBUFFER, render_buffer_depth);
+    // glRenderbufferStorage(GL_RENDERBUFFER,
+    //                       GL_DEPTH_COMPONENT,
+    //                       FRAME_BUFFER_WIDTH,
+    //                       FRAME_BUFFER_HEIGHT);
+    // EXIT_IF_GL_ERROR();
+
+    u32 frame_buffer;
+    glGenFramebuffers(1, &frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                              GL_COLOR_ATTACHMENT0,
+                              GL_RENDERBUFFER,
+                              render_buffer_color);
+    // glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+    //                           GL_DEPTH_ATTACHMENT,
+    //                           GL_RENDERBUFFER,
+    //                           render_buffer_depth);
+    EXIT_IF_GL_ERROR();
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        EXIT_IF_GL_ERROR();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glEnable(GL_DEPTH_TEST);
+
     glUniform2f(glGetUniformLocation(program, "WINDOW"),
-                WINDOW_WIDTH,
-                WINDOW_HEIGHT);
+                FRAME_BUFFER_WIDTH,
+                FRAME_BUFFER_HEIGHT);
 
     i32 uniform_time = glGetUniformLocation(program, "TIME");
 
@@ -202,8 +241,29 @@ i32 main(i32 n, const char** args) {
         glUniform1f(uniform_time,
                     ((f32)(start % (NANO_PER_SECOND * TIME_INTERVAL))) /
                         (NANO_PER_SECOND * TIME_INTERVAL));
+
+        glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT);
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_buffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glBlitFramebuffer(0,
+                          0,
+                          FRAME_BUFFER_WIDTH,
+                          FRAME_BUFFER_HEIGHT,
+                          0,
+                          0,
+                          WINDOW_WIDTH,
+                          WINDOW_HEIGHT,
+                          // GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+                          GL_COLOR_BUFFER_BIT,
+                          GL_NEAREST);
         EXIT_IF_GL_ERROR();
         glfwSwapBuffers(window);
 
@@ -217,6 +277,9 @@ i32 main(i32 n, const char** args) {
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ebo);
+    glDeleteFramebuffers(1, &frame_buffer);
+    glDeleteRenderbuffers(1, &render_buffer_color);
+    // glDeleteRenderbuffers(1, &render_buffer_depth);
     glDeleteProgram(program);
     glfwTerminate();
     return OK;
