@@ -4,6 +4,8 @@ layout(location = 0) out vec4 FRAG_OUT_COLOR;
 
 uniform vec2  WINDOW;
 uniform float TIME;
+uniform vec3  POSITION;
+uniform vec3  AIM;
 
 struct Plane {
     vec3  normal;
@@ -22,8 +24,10 @@ struct Sphere {
 #define N_SPHERES 4
 
 void main() {
-    vec3 camera_position = vec3(TIME * 3.0f, (TIME * 5.0f) + 0.25f, 12.5f);
-    vec3 camera_aim = vec3(0.0f);
+    // vec3 camera_position = vec3(TIME * 3.0f, (TIME * 5.0f) + 0.25f, 12.5f);
+    vec3 camera_position = POSITION;
+    // vec3 camera_aim = vec3(0.0f);
+    vec3 camera_aim = AIM;
     vec3 camera_z = normalize(camera_position - camera_aim);
     vec3 camera_x = normalize(cross(vec3(TIME / 10.0f, 1.0f, 0.0f), camera_z));
     vec3 camera_y = normalize(cross(camera_z, camera_x));

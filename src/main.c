@@ -218,7 +218,12 @@ i32 main(i32 n, const char** args) {
                 FRAME_BUFFER_WIDTH,
                 FRAME_BUFFER_HEIGHT);
 
+    Vec3f position = {0.0f, 3.0f, 15.0f};
+    Vec3f aim = {0.0f, -1.5f, 0.0f};
+
     i32 uniform_time = glGetUniformLocation(program, "TIME");
+    i32 uniform_position = glGetUniformLocation(program, "POSITION");
+    i32 uniform_aim = glGetUniformLocation(program, "AIM");
 
     u64 time = now_ns();
     u64 frames = 0;
@@ -238,10 +243,31 @@ i32 main(i32 n, const char** args) {
             frames = 0;
         }
 
+#define SPEED 0.25f
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            position.x += SPEED;
+            aim.x += SPEED;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            position.x -= SPEED;
+            aim.x -= SPEED;
+        }
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            position.z -= SPEED;
+            aim.z -= SPEED;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            position.z += SPEED;
+            aim.z += SPEED;
+        }
+#undef SPEED
+
         glUniform1f(uniform_time,
                     ((f32)(start % (NANO_PER_SECOND * TIME_INTERVAL))) /
                         (NANO_PER_SECOND * TIME_INTERVAL));
 
+        glUniform3f(uniform_position, position.x, position.y, position.z);
+        glUniform3f(uniform_aim, aim.x, aim.y, aim.z);
         glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
         glViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
