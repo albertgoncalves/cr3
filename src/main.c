@@ -12,7 +12,7 @@
 
 #define TIME_INTERVAL 4
 
-#define FRAME_DURATION ((u64)((1.0 / 60.0) * NANO_PER_SECOND))
+#define FRAME_DURATION ((u64)((1.0 / (60.0 + 1.0)) * NANO_PER_SECOND))
 
 #define EXIT_IF_GL_ERROR()                                 \
     do {                                                   \
@@ -181,9 +181,24 @@ i32 main(i32 n, const char** args) {
 
     i32 uniform_time = glGetUniformLocation(program, "TIME");
 
+    u64 time = now_ns();
+    u64 frames = 0;
+    printf("\n\n");
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         const u64 start = now_ns();
+        ++frames;
+        // NOTE: See `http://www.opengl-tutorial.org/miscellaneous/an-fps-counter/`.
+        if (NANO_PER_SECOND <= (start - time)) {
+            printf("\033[2A"
+                   "%7.4f ms/f\n"
+                   "%7lu f/s\n",
+                   (NANO_PER_SECOND / (f64)frames) / NANO_PER_MILLI,
+                   frames);
+            time += NANO_PER_SECOND;
+            frames = 0;
+        }
+
         glUniform1f(uniform_time,
                     ((f32)(start % (NANO_PER_SECOND * TIME_INTERVAL))) /
                         (NANO_PER_SECOND * TIME_INTERVAL));

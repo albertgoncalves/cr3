@@ -14,6 +14,7 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 typedef int32_t  i32;
 typedef float    f32;
+typedef double   f64;
 
 typedef struct stat     FileStat;
 typedef struct timespec Time;
@@ -94,8 +95,10 @@ static const char* map_to_buffer(MemMap map) {
     return string_to_buffer(string);
 }
 
+#define MILLI_PER_SECOND 1000llu
 #define MICRO_PER_SECOND 1000000llu
 #define NANO_PER_SECOND  1000000000llu
+#define NANO_PER_MILLI   (NANO_PER_SECOND / MILLI_PER_SECOND)
 #define NANO_PER_MICRO   (NANO_PER_SECOND / MICRO_PER_SECOND)
 
 static u64 now_ns(void) {
