@@ -23,8 +23,8 @@ struct Sphere {
 
 void main() {
     vec3 camera_position = vec3(TIME * 3.0f, (TIME * 5.0f) + 0.25f, 12.5f);
-    vec3 camera_target = vec3(0.0f);
-    vec3 camera_z = normalize(camera_position - camera_target);
+    vec3 camera_aim = vec3(0.0f);
+    vec3 camera_z = normalize(camera_position - camera_aim);
     vec3 camera_x = normalize(cross(vec3(TIME / 10.0f, 1.0f, 0.0f), camera_z));
     vec3 camera_y = normalize(cross(camera_z, camera_x));
 
